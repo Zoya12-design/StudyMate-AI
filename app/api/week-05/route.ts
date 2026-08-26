@@ -15,9 +15,7 @@ import {
   streamText,
   type UIMessage,
 } from "ai";
-import { google } from "@ai-sdk/google";
-
-import { MODEL_ID } from "@/lib/ai-config";
+import { model } from "@/lib/ai-config";
 import { lookupConcept } from "@/lib/tools/lookup-concept";
 
 export const maxDuration = 30;
@@ -41,7 +39,7 @@ export async function POST(req: Request) {
     const { messages }: { messages: UIMessage[] } = await req.json();
 
     const result = streamText({
-      model: google(MODEL_ID),
+      model,
       system: SYSTEM_PROMPT,
       messages: await convertToModelMessages(messages),
       tools: { lookupConcept },

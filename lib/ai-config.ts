@@ -1,13 +1,19 @@
 /**
- * FE-06 AI configuration
+ * AI configuration (FE-06 + FE-07)
  *
- * Keep model selection and the system prompt in one server-side module.
- * Changing the provider later should not require rewriting the chat UI.
+ * Model, provider, and system prompt live in one server-side module so
+ * switching providers later never touches the chat UI or the API routes.
  */
 
-// Gemini 2.5 Flash has a current free tier in Google AI Studio.
-// The model string is centralized so it is easy to change later.
-export const MODEL_ID = "gemini-3.6-flash";
+import { openrouter } from "@openrouter/ai-sdk-provider";
+
+// OpenRouter · Llama 3.3 70B Instruct. Supports tool calling (needed for FE-07).
+// Centralised so the model is easy to swap in exactly one place.
+export const MODEL_ID = "meta-llama/llama-3.3-70b-instruct";
+
+// Shared model instance. The provider reads OPENROUTER_API_KEY from the
+// environment (server-side only) — never import this into a client component.
+export const model = openrouter(MODEL_ID);
 
 export const MAX_OUTPUT_TOKENS = 1500;
 

@@ -4,10 +4,8 @@ import {
   type UIMessage,
 } from "ai";
 
-import { google } from "@ai-sdk/google";
-
 import {
-  MODEL_ID,
+  model,
   SYSTEM_PROMPT,
   TEMPERATURE,
   MAX_OUTPUT_TOKENS,
@@ -19,10 +17,8 @@ export async function POST(req: Request) {
   try {
     const { messages }: { messages: UIMessage[] } = await req.json();
 
-    console.log("Received messages:", messages.length);
-
     const result = streamText({
-      model: google(MODEL_ID),
+      model,
       system: SYSTEM_PROMPT,
       messages: await convertToModelMessages(messages),
       temperature: TEMPERATURE,
