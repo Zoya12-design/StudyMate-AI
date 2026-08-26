@@ -144,3 +144,117 @@ Same deploy flow as FE-06 (Vercel + `OPENROUTER_API_KEY`). The Preview URL demo 
 ## Security note
 
 `.env.local` is intentionally gitignored. Do not upload API keys to GitHub, screenshots, assignment comments, or the client bundle.
+
+---
+
+# FE-08 — Error States, Empty States, Edge Cases
+
+FE-08 hardens the **primary flow** (type a question → stream an answer) in place, so the FE-06 route `/` is the graded surface — no rewrite, no new happy path.
+
+Two things are new:
+
+- **`lib/failure-modes.ts`** — the failure inventory as executable data. It is imported by both the server route and the client, so the list in this README, the buttons in the UI, and the branches in the API route cannot drift apart.
+- **`/week-06` — the Reliability Lab.** The same `<ChatInterface />` with `failureLab` enabled. It arms a failure, which is then injected into the *next real request*, so a reviewer can trigger every handled state **on the deployed URL** without DevTools, a throttled connection, or a burnt API quota.
+
+```text
+app/
+  api/chat/route.ts        # + input validation + the `simulate` sabotage switch
+  week-06/page.tsx         # <ChatInterface failureLab /> — the Reliability Lab
+  error.tsx                # route-level boundary (a page threw during render)
+  global-error.tsx         # root boundary — inline styles only, no Tailwind
+  not-found.tsx            # designed 404 listing the real routes
+components/
+  ChatInterface.tsx        # error/empty/offline/slow states, guarded retry
+  chat/ErrorBanner.tsx     # role="alert" banner + "Retry this message"
+  chat/AssistantSkeleton.tsx  # pending state, shaped like the real bubble
+  chat/FailureLab.tsx      # the arm-a-failure panel
+  chat/Markdown.tsx        # markdown renderer, extracted so both share it
+lib/
+  failure-modes.ts         # the inventory + describeError()
+```
+
+## Failure inventory
+
+Each row is a real way the flow breaks, and what the user sees instead of a dead screen. `Arm` is the Reliability Lab button that reproduces it.
+
+| Arm                       | What goes wrong                                        | What the user gets                                                                 |
+| ------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 🚫 API error (500)        | The route fails before a single token streams.          | Error banner with the reason + a Retry that resends **only the failed turn**.       |
+| ✂️ Connection dies mid-stream | The response stream is cut after the first few tokens. | The partial answer **stays on screen**, flagged incomplete, with a working Retry.   |
+| ⏳ Rate limit (429)        | Free-tier keys allow only a few requests per minute.    | Rate-limit-specific copy ("wait ~30s"), not a generic failure.                       |
+| 🐢 Slow response          | Several seconds before the first token.                 | A skeleton shaped like the real answer, then a "still working" note after 4s.        |
+| 🫥 Empty response         | The stream completes producing no text.                 | An explicit "No answer came back" card with Retry — not a silent blank bubble.       |
+| 📴 Network offline        | The device loses its connection.                        | Offline banner, the composer locks, and **whatever was typed is preserved**.         |
+
+Edge cases handled without a simulation:
+
+| Edge case                        | Handling                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Empty / whitespace-only input    | Send stays disabled and Enter is a no-op — no empty request ever reaches the model.                 |
+| Over-long input (> 2000 chars)   | A live counter turns red and blocks the send client-side; the route also rejects it with `413`.     |
+| First run, no conversation yet   | Onboarding empty state: three real questions that send on tap, plus a link to the concept lookup.  |
+| User stops the stream            | Partial answer kept, composer unlocks, **no error shown** — a deliberate stop is not a failure.     |
+| Unknown URL / crashed route      | `not-found.tsx` and `error.tsx` render designed pages with a route back into the chat.              |
+| Double-tapping Retry             | Guarded by a request-in-flight **ref**, so one tap equals one request (see below).                  |
+
+## How the sabotage switch works
+
+`useChat`'s per-request options carry the armed failure to the server:
+
+```ts
+await sendMessage({ text: value }, simulate ? { body: { simulate } } : undefined);
+```
+
+`app/api/chat/route.ts` reads `simulate` and branches **before** calling the model — so a demo never spends tokens on a failure. Two branches are worth noting:
+
+- **`mid-stream`** wraps the real streaming response body and calls `controller.error()` after ~500 bytes. Real tokens arrive first, then the connection dies — no knowledge of the wire protocol required, and the client keeps its partial text.
+- **`empty`** returns a valid, well-formed stream that yields no text parts at all.
+
+Errors are returned as **plain text**, not JSON: `DefaultChatTransport` surfaces the response body as `error.message`, so a readable sentence becomes usable copy instead of a JSON blob on screen. `describeError()` then maps that message to a title + actionable hint.
+
+Arming is **one-shot** — it disarms itself as soon as the request is sent, so **Retry runs for real** and the recovery can be demonstrated, not just the failure.
+
+## Three details that were bugs first
+
+- **Retry must retry the failed message, not the conversation.** `regenerate()` with no `messageId` targets the last message and slices the history back to that exchange, so it replays exactly the failed turn. On a mid-stream cut it **replaces** the truncated answer instead of appending a second one.
+- **A `useState` guard does not stop a double-click.** Two clicks in the same tick both read the pre-update value, so three rapid taps fired three requests and produced two answers to one question. The single-flight lock is a `useRef` written synchronously; the `disabled` attribute is only the visual half.
+- **A killed stream looks like a network error.** Matching on `error.message` alone made a mid-stream cut say "check your connection" while the user was plainly online, looking at half an answer. `describeError(error, { truncated })` takes the presence of partial text into account and says "The answer was cut off" instead.
+
+## Loading and empty states
+
+- The skeleton **mirrors the assistant bubble exactly** — same 36px avatar, padding, radius, and three rows at the bubble's 28px line-height — so the first token causes **zero layout shift** (verified: identical `left`, `width`, `padding`, and `border-radius` before and after).
+- After 4 seconds it adds "Still working — the free model can take a few seconds on the first token", so a slow answer never reads as frozen.
+- The empty state is **onboarding, not decoration**: it names what StudyMate does and offers three real questions that send on tap, plus a link to `/week-05`.
+- Every dead end points somewhere: the 404 lists the real routes, `error.tsx` offers "Try again" + "Back to chat", and the offline banner explains that the typed message is still there.
+
+## Responsive / mobile Safari
+
+- `interactiveWidget: "resizes-content"` in the `viewport` export — the layout viewport shrinks with the iOS keyboard instead of being overlaid, which is what makes the bottom-anchored composer behave.
+- `h-dvh` for the column, plus a `visualViewport` resize listener that re-anchors the transcript when the keyboard opens or closes.
+- `overscroll-contain` on the message list and `overscroll-behavior-y: none` on `body` — no rubber-banding the whole page behind the chat.
+- `pb-[max(0.75rem,env(safe-area-inset-bottom))]` on the composer so the home-indicator area never covers the Send button.
+- 16px textarea text and `-webkit-text-size-adjust: 100%` — iOS neither zooms on focus nor inflates text on rotate.
+
+## Reproduce every state
+
+At **`/week-06`**, open the Reliability Lab, tap one failure to arm it, then send any question:
+
+| To see                        | Do this                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| Happy path                    | Send a question with nothing armed.                                           |
+| Error banner + working retry  | Arm **API error (500)**, send, then press **Retry this message**.              |
+| Partial answer kept           | Arm **Connection dies mid-stream**, send, watch text arrive then stop.         |
+| Skeleton → answer, no shift   | Arm **Slow response**, send, watch the skeleton and the 4s note.               |
+| Offline lock                  | Tap **Network offline** — type, and note the text survives coming back online. |
+| First-run empty state         | Press **New Chat**.                                                           |
+| Designed 404                  | Visit any URL that does not exist.                                            |
+
+Reviewer note: `/` is the graded primary flow and has no lab panel. `/week-06` is the same component with the panel switched on.
+
+## Demo checklist
+
+1. Happy path on `/` — question in, answer streams.
+2. `/week-06` → arm **API error (500)** → send → banner → **Retry** → real answer arrives.
+3. `/week-06` → arm **Connection dies mid-stream** → send → partial answer stays, flagged, Retry replaces it.
+4. Phone width: keyboard open, composer still visible, no page rubber-banding.
+5. DevTools console on the happy path: clean.

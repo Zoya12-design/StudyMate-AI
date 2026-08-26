@@ -8,6 +8,21 @@ body {
   margin: 0;
 }
 
+/* =========================================================================
+   FE-08 — mobile browser hardening.
+   ========================================================================= */
+
+html {
+  /* iOS Safari silently inflates text on rotate without this. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  /* Stops the whole page from rubber-band scrolling behind the fixed chat
+     column on iOS; the message list opts back in with `overscroll-contain`. */
+  overscroll-behavior-y: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
@@ -93,5 +108,31 @@ body {
   }
   50% {
     opacity: 0;
+  }
+}
+
+/* =========================================================================
+   FE-08 (Week 6) — loading skeleton.
+   Used by the assistant skeleton, whose rows match the message bubble's
+   line-height so the first token does not shift the layout. Neutralized by the
+   reduced-motion block above.
+   ========================================================================= */
+
+.fe08-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    #e5e5e5 0%,
+    #f5f5f5 50%,
+    #e5e5e5 100%
+  );
+  background-size: 200% 100%;
+  animation: fe08-skeleton 1.4s ease-in-out infinite;
+}
+@keyframes fe08-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
