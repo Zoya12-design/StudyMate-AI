@@ -64,6 +64,83 @@ Test these exact reviewer actions:
 7. Press “Jump to latest” and confirm it returns to the newest token.
 8. Test the layout at phone width in browser DevTools.
 
+---
+
+# FE-07 — Tool Results & Structured Output
+
+FE-07 is built **additively** on top of FE-06: the root chat (`/`, `/api/chat`) is untouched, and the tool demo lives on its own route so both weeks can be graded independently.
+
+- **UI route:** `/week-05` (`app/week-05/page.tsx` → `components/week5/ConceptChat.tsx`)
+- **API route:** `/api/week-05` (`app/api/week-05/route.ts`) — `streamText` with `tools`, `stopWhen: stepCountIs(5)` for multi-step tool calls.
+- **Tool definition file (key deliverable):** [`lib/tools/lookup-concept.ts`](lib/tools/lookup-concept.ts)
+
+## Tool contract
+
+### Name
+
+`lookupConcept` — a server-side tool that looks up a short encyclopedic summary of one concept from the Wikipedia REST API and returns it as structured data.
+
+### Input schema (Zod)
+
+Defined with `z.object` and passed to `tool({ inputSchema })`. Kept to a **single field** on purpose — every field is a hallucination surface, so the model only has to get one thing right.
+
+```ts
+z.object({
+  term: z
+    .string()
+    .min(2, "Term must be at least 2 characters.")
+    .max(80, "Term is too long.")
+    .describe("The single concept, topic, or term to explain — e.g. 'Binary search tree', 'HTTP'. Canonical name, not a full sentence."),
+})
+```
+
+| Field  | Type     | Constraints        | Notes                                             |
+| ------ | -------- | ------------------ | ------------------------------------------------- |
+| `term` | `string` | 2–80 chars, required | The `.describe()` text steers the model to pass a canonical noun phrase, not a question. |
+
+### Return shape
+
+`execute` resolves to a typed `ConceptResult` (the object rendered by the result component):
+
+```ts
+type ConceptResult = {
+  term: string;              // the cleaned term that was looked up
+  title: string;             // canonical article title
+  summary: string;           // plain-text extract (the explanation)
+  description: string | null; // short one-liner, or null if the source omits it
+  thumbnail: string | null;   // image URL, or null → card renders a lettered tile
+  url: string;               // link to the full article
+  readingTimeMin: number;    // derived from summary length (≥ 1)
+};
+```
+
+`description` and `thumbnail` are **nullable**; the card has an explicit render path for each missing case (the description line is dropped; a lettered placeholder tile replaces the image) rather than leaving a hole.
+
+### Failure behavior
+
+`execute` **throws** on a missing entry (HTTP 404), an upstream error (`!res.ok`), or an empty summary. A thrown `execute` is surfaced by the AI SDK as a `tool-output-error` stream part with an `errorText` message — which the UI renders as a **designed error card**, never a crash.
+
+## The four tool-part states
+
+The tool part (`type: "tool-lookupConcept"`) is rendered by [`components/week5/ToolCall.tsx`](components/week5/ToolCall.tsx) as a small state machine. The outer shell keeps a fixed shape and the inner body is keyed by `state`, so each transition **morphs** (200ms fade + rise) instead of jumping the layout. A stepper and a raw `state` pill in the header make the current state legible at a glance.
+
+| State              | Question answered   | Visual treatment                                                        |
+| ------------------ | ------------------- | ----------------------------------------------------------------------- |
+| `input-streaming`  | "What is it doing?" | ✨ "Deciding what to look up" + shimmer skeleton + forming-query caret   |
+| `input-available`  | "With what input?"  | 🔍 confirmed `term` chip + indeterminate progress bar                    |
+| `output-available` | "What came back?"   | **`<ConceptCard />`** — a real result component (image/tile, title, description, summary, reading time, source link) |
+| `output-error`     | "What went wrong?"  | ⚠️ red card: friendly headline + the failed term + the raw `errorText` as a muted technical detail |
+
+The result component is [`components/week5/ConceptCard.tsx`](components/week5/ConceptCard.tsx) — the tool output rendered as a designed card, not a JSON dump. A separate `ErrorBanner` in `ConceptChat` handles **stream/model** errors (rate limit, auth, network) with a Retry (`clearError()` + `regenerate()`), distinct from a tool's `output-error`.
+
+### Try the states
+
+Open `/week-05` and use a suggestion chip. The **"qwzxvbn"** chip deliberately looks up a nonexistent term to demonstrate the designed `output-error` state end-to-end.
+
+## Deploy & demo note
+
+Same deploy flow as FE-06 (Vercel + `GOOGLE_GENERATIVE_AI_API_KEY`). The Preview URL demo requires a **working Gemini API key** — a valid key must be set in Vercel Project Settings → Environment Variables. Submit the Preview URL plus the GitHub link to `lib/tools/lookup-concept.ts`.
+
 ## Security note
 
 `.env.local` is intentionally gitignored. Do not upload API keys to GitHub, screenshots, assignment comments, or the client bundle.

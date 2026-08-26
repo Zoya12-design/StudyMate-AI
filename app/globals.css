@@ -15,3 +15,83 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* =========================================================================
+   FE-07 (Week 5) — tool-call state animations.
+   Scoped by the `fe07-` prefix; unused by the FE-06 pages. The reduced-motion
+   block above neutralizes all of these for users who prefer no motion.
+   ========================================================================= */
+
+/* State transitions morph (fade + rise) instead of jumping the layout. */
+.fe07-tool-in {
+  animation: fe07-tool-in 200ms ease-out;
+}
+@keyframes fe07-tool-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton shimmer for the input-streaming state. */
+.fe07-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    #e5e5e5 0%,
+    #f4f4f4 50%,
+    #e5e5e5 100%
+  );
+  background-size: 200% 100%;
+  animation: fe07-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes fe07-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Indeterminate progress bar for the input-available (awaiting result) state. */
+.fe07-indeterminate {
+  animation: fe07-indeterminate 1.1s ease-in-out infinite;
+}
+@keyframes fe07-indeterminate {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* Gentle pulse + typing caret. */
+.fe07-pulse {
+  animation: fe07-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fe07-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.fe07-blink {
+  animation: fe07-blink 1s step-end infinite;
+}
+@keyframes fe07-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
