@@ -6,7 +6,7 @@ export default function Home() {
     <main>
       <HeroSection />
 
-       <section className="relative mx-auto max-w-5xl px-6 py-20 text-center bg-[#0b0f1a]/40 rounded-3xl">
+      <section className="relative mx-auto max-w-5xl px-6 py-20 text-center bg-[#0b0f1a] rounded-3xl">
         <p className="text-lg text-gray-300">
           AI Developer • Web Applications
         </p>
