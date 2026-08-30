@@ -1,18 +1,21 @@
 import ChatInterface from "@/components/ChatInterface";
+import HeroSection from "../components/hero/HeroSectionClient";
 
 export default function Home() {
   return (
     <main>
+      <HeroSection />
+
       <section className="mx-auto max-w-5xl px-6 py-20 text-center">
-        <p className="text-lg text-gray-500">
+        <p className="text-lg text-gray-300">
           AI Developer • Web Applications
         </p>
 
-        <h1 className="mt-4 text-5xl font-bold">
+        <h1 className="mt-4 text-5xl font-bold text-white">
           Hi, I’m Zoya.
         </h1>
 
-        <p className="mx-auto mt-6 max-w-3xl text-xl leading-8 text-gray-600">
+        <p className="mx-auto mt-6 max-w-3xl text-xl leading-8 text-gray-300">
           I build AI-powered web applications, especially tools that help
           students learn, revise, and solve problems more effectively.
         </p>
@@ -22,7 +25,7 @@ export default function Home() {
             (skill) => (
               <span
                 key={skill}
-                className="rounded-full border px-5 py-2"
+                className="rounded-full border px-5 py-2 bg-white/10 text-white border-white/30"
               >
                 {skill}
               </span>
@@ -32,9 +35,9 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 pb-20">
-        <h2 className="text-3xl font-bold">What I Built</h2>
+        <h2 className="text-3xl font-bold text-white">What I Built</h2>
 
-        <div className="mt-8 rounded-2xl border p-8 shadow-sm">
+        <div className="mt-8 rounded-2xl border p-8 shadow-sm bg-white">
           <h3 className="text-2xl font-semibold">StudyMate AI</h3>
 
           <p className="mt-3 text-gray-600">
@@ -53,16 +56,15 @@ export default function Home() {
             <li>Reliability testing and failure states</li>
             <li>Responsive mobile-friendly interface</li>
           </ul>
-<a
-  href="https://github.com/Zoya12-design"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="mt-6 inline-block rounded-lg bg-black px-6 py-3 font-medium text-white"
->
-  View My GitHub →
-</a>
 
-          
+          <a
+            href="https://github.com/Zoya12-design"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-block rounded-lg bg-black px-6 py-3 font-medium text-white"
+          >
+            View My GitHub →
+          </a>
         </div>
       </section>
 
