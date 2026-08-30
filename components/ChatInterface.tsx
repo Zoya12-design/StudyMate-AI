@@ -560,7 +560,7 @@ className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold t
         </div>
 
         <div className="mx-auto mt-2 flex w-full max-w-3xl items-center justify-between gap-3">
-          <p className="hidden text-[11px] text-neutral-400 sm:block">
+          <p className="hidden text-[11px] text-neutral-500 sm:block"></p><p className="hidden text-[11px] text-neutral-400 sm:block">
             Enter to send • Shift + Enter for a new line
           </p>
 

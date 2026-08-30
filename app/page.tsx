@@ -35,7 +35,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 pb-20">
-        <h2 className="text-3xl font-bold text-white">What I Built</h2>
+        <h2 className="text-3xl font-bold text-neutral-900">What I Built</h2>
 
         <div className="mt-8 rounded-2xl border p-8 shadow-sm bg-white">
           <h3 className="text-2xl font-semibold">StudyMate AI</h3>
