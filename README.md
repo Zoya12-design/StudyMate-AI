@@ -4,6 +4,10 @@ An AI-powered streaming study assistant that helps students understand concepts,
 
 **Live:** https://study-mate-ai-lilac.vercel.app
 
+## Project Brief
+
+StudyMate AI solves the problem of students needing quick, reliable explanations, exam-prep summaries, and reasoning help without hopping between search tabs, textbooks, and forums. It's built for students working through coursework under time pressure — the moment you're stuck on a concept at 11pm before an exam, not doing formal research. I chose this idea because I wanted an AI project that solved a problem I've personally had as a student, rather than a generic AI-wrapper demo, and because it gave me a reason to get streaming responses, tool calling, and reliability testing all genuinely right instead of just working in the happy path.
+
 ## Track Deliverables (index)
 
 - **Live site:** https://study-mate-ai-lilac.vercel.app
