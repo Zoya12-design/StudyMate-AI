@@ -1,5 +1,5 @@
 import Link from "next/link";
-import HeroSection from "../components/hero/HeroSectionClient";
+import AuroraStudyHero from "@/components/hero/AuroraStudyHero";
 
 export const metadata = {
   title: "Zoya | AI Developer — StudyMate AI",
@@ -33,28 +33,22 @@ export const metadata = {
 export default function Home() {
   return (
     <main>
-      <HeroSection />
+      <AuroraStudyHero
+        eyebrow="Zoya — AI Developer"
+        headline="Hi, I’m Zoya."
+        subline="I build AI-powered web applications, especially tools that help students learn, revise, and solve problems more effectively."
+      />
 
-      <section className="relative mx-auto max-w-5xl px-6 py-20 text-center bg-[#0b0f1a] rounded-3xl">
-        <p className="text-lg text-gray-300">
-          AI Developer • Web Applications
+      <section className="bg-[#0B1220] px-6 py-10 text-center">
+        <p className="mb-4 text-xs uppercase tracking-widest text-[#A9B4C2]">
+          Built with
         </p>
-
-        <h1 className="mt-4 text-5xl font-bold text-white">
-          Hi, I’m Zoya.
-        </h1>
-
-        <p className="mx-auto mt-6 max-w-3xl text-xl leading-8 text-gray-300">
-          I build AI-powered web applications, especially tools that help
-          students learn, revise, and solve problems more effectively.
-        </p>
-
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-3">
           {["Next.js", "React", "TypeScript", "AI Integration"].map(
             (skill) => (
               <span
                 key={skill}
-                className="rounded-full border px-5 py-2 bg-white/10 text-white border-white/30"
+                className="rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm text-white"
               >
                 {skill}
               </span>
