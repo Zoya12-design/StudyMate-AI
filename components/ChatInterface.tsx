@@ -545,14 +545,15 @@ export default function ChatInterface({
             <button
               type="button"
               onClick={handleStop}
-className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-600 disabled:text-white"            >
+              className="h-12 shrink-0 rounded-2xl bg-red-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 active:bg-red-800"
+            >
               Stop
             </button>
           ) : (
             <button
               type="submit"
               disabled={!canSend}
-              className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-950 disabled:cursor-not-allowed disabled:opacity-30"
+              className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-600 disabled:text-white"
             >
               Send
             </button>
@@ -560,7 +561,7 @@ className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold t
         </div>
 
         <div className="mx-auto mt-2 flex w-full max-w-3xl items-center justify-between gap-3">
-          <p className="hidden text-[11px] text-neutral-500 sm:block"></p><p className="hidden text-[11px] text-neutral-400 sm:block">
+          <p className="hidden text-[11px] text-neutral-500 sm:block">
             Enter to send • Shift + Enter for a new line
           </p>
 
