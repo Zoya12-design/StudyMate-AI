@@ -545,8 +545,7 @@ export default function ChatInterface({
             <button
               type="button"
               onClick={handleStop}
-              className="h-12 shrink-0 rounded-2xl bg-red-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 active:bg-red-800"
-            >
+className="h-12 shrink-0 rounded-2xl bg-neutral-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:text-neutral-700"            >
               Stop
             </button>
           ) : (
