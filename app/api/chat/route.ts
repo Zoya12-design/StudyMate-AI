@@ -9,6 +9,12 @@
  *      purpose so every handled failure state can be demonstrated on the
  *      deployed URL. It is inert unless the client explicitly asks for it, so
  *      the happy path is completely unaffected.
+ *
+ * FE-11 adds production hygiene:
+ *   3. A simple per-IP rate limit, so a stranger hitting this route in a loop
+ *      can't drain the AI provider credits. In-memory on purpose — cheap,
+ *      good enough for a personal-scale deployment, and documented as a
+ *      known limitation in the README (resets on redeploy/cold start).
  */
 
 import {
@@ -30,6 +36,25 @@ import type { FailureId } from "@/lib/failure-modes";
 export const maxDuration = 30;
 
 const MAX_CHARS = 2000;
+
+// ---- FE-11: per-IP rate limit -------------------------------------------
+//
+// Tracks request timestamps per IP in memory. Cheap and effective against
+// casual abuse; not meant to survive a redeploy or scale across serverless
+// instances — that's an acceptable tradeoff for this project's traffic.
+const requestLog = new Map<string, number[]>();
+const RATE_LIMIT = 10; // max requests
+const RATE_WINDOW_MS = 60_000; // per 60 seconds
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (requestLog.get(ip) ?? []).filter(
+    (t) => now - t < RATE_WINDOW_MS
+  );
+  recent.push(now);
+  requestLog.set(ip, recent);
+  return recent.length > RATE_LIMIT;
+}
 
 /**
  * Failures reply with a plain-text body: the AI SDK transport surfaces that body
@@ -87,6 +112,18 @@ function cutStreamOff(response: Response, afterBytes = 500): Response {
 
 export async function POST(req: Request) {
   try {
+    // ---- FE-11: rate limit check, before anything else runs -------------
+
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+    if (isRateLimited(ip)) {
+      return fail(
+        "Too many requests — please wait a minute before trying again.",
+        429
+      );
+    }
+
     const body = await req.json().catch(() => null);
 
     const messages = (body as { messages?: UIMessage[] } | null)?.messages;
