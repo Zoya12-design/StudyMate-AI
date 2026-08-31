@@ -4,6 +4,14 @@ An AI-powered streaming study assistant that helps students understand concepts,
 
 **Live:** https://study-mate-ai-lilac.vercel.app
 
+## Track Deliverables (index)
+
+- **Live site:** https://study-mate-ai-lilac.vercel.app
+- **Retrospective:** [RETROSPECTIVE.md](./RETROSPECTIVE.md)
+- **Build-in-public post:** (https://study-mate-ib88a6i9u-zoyahulio1.vercel.app/chat)
+- **Demo video:** https://drive.google.com/file/d/1YvTOHWWXx2_AUEdzSJOqhE8XaAid0hEd/view?usp=sharing
+
+
 ## Screenshots
 
 <!-- Drop 2-3 screenshots here: hero, chat interface, concept lookup in action -->
@@ -77,7 +85,42 @@ An earlier/alternate hero exploration: a wireframe icosahedron surrounded by six
 - Fixed an `ERESOLVE` peer-dependency conflict (Vercel build) by adding `.npmrc` with `legacy-peer-deps=true` after diagnosing the mismatch between `@react-three/fiber` and the project's React version.
 - Manually reviewed and tested every AI-suggested change locally before deploying.
 
-## Known Limitations
+## Who this is for
+
+Students who need quick, conversational help understanding a concept, prepping for an exam, or debugging their own reasoning — without needing to leave a chat window to look things up elsewhere.
+
+## Usage Examples
+
+- **Explain a concept:** "Explain binary search trees in simple words with a small example."
+- **Prep for an exam:** "Give me a 5-point revision sheet on photosynthesis for a school exam."
+- **Debug your thinking:** "Why does a Python for-loop over a list I am editing skip items?"
+
+Type a question in the chat box on the homepage — responses stream in token-by-token, same as a real conversation.
+
+## Architecture Sketch
+
+```
+Browser (chat UI)
+     │  POST /api/chat  { messages, simulate? }
+     ▼
+Next.js API Route (app/api/chat/route.ts)
+     │  - rate limit check (per IP)
+     │  - input validation (empty / too long)
+     │  - optional failure simulation (FE-08 sabotage switch)
+     ▼
+AI SDK → OpenRouter → model
+     │  streamText(), token-by-token
+     ▼
+UI message stream ──► Browser renders streaming text
+```
+
+## Eval Results (v2)
+
+<!-- Fill in your actual FE-08/reliability-testing numbers here, e.g. from AUDIT.md -->
+Tested against the deliberate failure modes built into the route (`simulate` switch): HTTP 500, simulated rate-limit, slow response, empty stream, and mid-stream disconnect. Each surfaces a specific, readable error message in the UI instead of a blank or crashed screen — see `lib/failure-modes.ts` and the `AUDIT.md` file for the full pass/fail table from that testing pass.
+
+## Limitations
 
 - Rate limiting is in-memory and resets on server restart/redeploy — fine for a demo, not for high-traffic production.
+- No conversation persistence — refreshing the page loses chat history.
 - FlyRank internship graduate badge pending, will be added to footer once issued.
