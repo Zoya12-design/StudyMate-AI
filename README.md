@@ -15,8 +15,8 @@ An AI-powered streaming study assistant that helps students understand concepts,
 ## Screenshots
 
 <!-- Drop 2-3 screenshots here: hero, chat interface, concept lookup in action -->
-![Hero](./docs/screenshot-hero.png)
-![Chat](./docs/screenshot-chat.png)
+![Hero](./Docs/screenshot-hero.png)
+![Chat](./Docs/screenshot-chat.png)
 
 ## Features
 
